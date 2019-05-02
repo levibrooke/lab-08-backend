@@ -54,9 +54,11 @@ app.get('/location', (request, response) => {
   // check for json file
   try {
     let queryData = request.query.data;
-    let geocodeURL = `https://maps.googleapis.com/maps/api/geocode/json?address=${queryData}&key=${process.env.GEOCODE_API_KEY}`;
+    let geocodeURL = `https://maps.googleapis.com/maps/api/geocode/json?address=${queryData}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
     superagent.get(geocodeURL)
       .end( (err, googleMapsApiResponse) => {
+        console.log('googleMapsApiResponse.body', googleMapsApiResponse.body);
+
         // turn it into a location instance
         const location = new Location(queryData, googleMapsApiResponse.body);
         // send that as our response to our frontend
