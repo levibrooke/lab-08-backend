@@ -7,43 +7,12 @@ const cors = require('cors');
 const superagent = require('superagent');
 const { Client } = require('pg');
 
+//set up database
 const client = new Client(process.env.DATABASE_URL);
 client.connect();
 
-//set up database
 // use environment variable, or, if it's undefined, use 3000 by default
 const PORT = process.env.PORT || 3000;
-
-function checkDBForLocation(query) {
-  let sqlStatement = `SELECT * FROM location WHERE search_query LIKE $1`;
-  let values = [query];
-  return client.query(sqlStatement, values).then(data => {
-    if (data.rowCount > 0) {
-      console.log('Grabbing from DataBase');
-      return data.rows[0];
-    } else {
-      console.log('calling the API');
-      console.log(query);
-      let geocodeURL = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${
-        process.env.GOOGLE_MAPS_API_KEY
-      }`;
-      return superagent.get(geocodeURL).end((err, googleMapsApiResponse) => {
-        // turn it into a location instance
-        const location = new Location(query, googleMapsApiResponse.body);
-        let sqlInsertStatement = `INSERT INTO location (latitude, longitude, formatted_query, search_query) VALUES ($1, $2, $3, $4)`;
-        let insertVals = [
-          location.latitude,
-          location.longitude,
-          location.formatted_query,
-          location.search_query
-        ];
-        client.query(sqlInsertStatement, insertVals);
-        // send that as our response to our frontend
-        return location;
-      });
-    }
-  });
-}
 
 // Constructor for the Location response from API
 const Location = function(queryData, res) {
@@ -82,6 +51,38 @@ function errorHandling(error, status, response) {
   response.status(status).send('Sorry, something went wrong');
 }
 
+// Function for getting location from DB or API
+function checkDBForLocation(query) {
+  let sqlStatement = `SELECT * FROM location WHERE search_query LIKE $1`;
+  let values = [query];
+  return client.query(sqlStatement, values)
+    .then(data => {
+      if (data.rowCount > 0) {
+        return data.rows[0];
+      } else {
+        let geocodeURL = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+
+        return superagent.get(geocodeURL)
+          .then((googleMapsApiResponse) => { // changed from end to then
+        
+            // create location instance
+            const location = new Location(query, googleMapsApiResponse.body);
+            let sqlInsertStatement = `INSERT INTO location (latitude, longitude, formatted_query, search_query) VALUES ($1, $2, $3, $4)`;
+            let insertVals = [
+              location.latitude,
+              location.longitude,
+              location.formatted_query,
+              location.search_query
+            ];
+            client.query(sqlInsertStatement, insertVals);
+
+            // send location as our response to our frontend
+            return location;
+          });
+      }
+    });
+}
+
 // express middleware
 app.use(cors());
 app.use(express.static('./public'));
@@ -91,9 +92,10 @@ app.get('/location', (request, response) => {
   // check for json file
   try {
     let queryData = request.query.data;
-    checkDBForLocation(queryData).then(location => {
-      response.send(location);
-    });
+    checkDBForLocation(queryData)
+      .then(location => {
+        response.send(location);
+      });
   } catch (error) {
     console.log('There was an error /location path');
     errorHandling(error, 500, 'Sorry, something went wrong.');
