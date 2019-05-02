@@ -16,9 +16,41 @@ For this lab assignment, you will use the latitude and longitude to request info
 <!-- Provide a detailed description of the application design. What technologies (languages, libraries, etc) you're using, and any other relevant design information. -->
 
 ## Change Log
-<!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples:
+```
+Number and name of feature: Feature 1
 
-01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
+Estimate of time needed to complete: 45 min
+
+Start time: 10 am
+
+Finish time: 11 am
+
+Actual time needed to complete: 60 min
+```
+
+```
+Number and name of feature: Feature 2
+
+Estimate of time needed to complete: 60 min
+
+Start time: 11 am
+
+Finish time: 12:00 pm
+
+Actual time needed to complete: 60 min
+```
+
+```
+Number and name of feature: Feature 3 Deployment
+
+Estimate of time needed to complete: 30 min
+
+Start time: 12 pm
+
+Finish time: 12:30 pm
+
+Actual time needed to complete: 60 min
+```
 
 ## Credits and Collaborations
 <!-- Give credit (and a link) to other people or resources that helped you build this application. -->
